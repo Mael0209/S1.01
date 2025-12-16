@@ -2,7 +2,7 @@
 #include <string.h>
 #define N_MAX_ETUD 100
 #define N_MAX_MATIERES 4
-#define N_MAX_EVALS 15
+#define N_MAX_EVALS 30
 
 // Structuration de la structure Etudiant :
 // nom, prenom,
@@ -25,10 +25,10 @@ typedef struct Evaluation
 
 typedef struct Matiere
 {
-    char nom[50]; // nom de la matière (Taille à revoir)
-    int nombreEvaluations;
+    char nom[50];                             // nom de la matière (Taille à revoir)
+    int nombreEvaluations;                    // nombre d'évaluations, initialisé à 0 dans la fonction initMatiere
     float moyenne;                            // Moyenne de la matière (A voir comment la calculer)
-    Evaluation listeEvaluations[N_MAX_EVALS]; // Liste des évaluations, utilise uen constante pour la taille
+    Evaluation listeEvaluations[N_MAX_EVALS]; // Liste des évaluations, utilise une constante pour la taille
 } Matiere;
 
 typedef struct Etudiant
@@ -38,13 +38,26 @@ typedef struct Etudiant
     Matiere matieres[N_MAX_MATIERES];
 } Etudiant;
 
-void initMatieres(Etudiant etud)
+void initMatieres(Etudiant etud) // Utilisée lors de la création d'un étudiant
 {
     char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
     printf("Pour chaque matiere, saisir le nombre d'evaluations : \n");
-    for (int i=0; i<N_MAX_MATIERES; i++){
+    for (int i = 0; i < N_MAX_MATIERES; i++)
+    {
+        int nombreEvals;
         char *nomMatiere = listeMatieres[i];
-        printf("%s\n", nomMatiere);
+        Matiere matiere = etud.matieres[i];
+        strcpy(matiere.nom, nomMatiere);
+        matiere.moyenne = 0;
+        matiere.nombreEvaluations = 0;
+        printf("Matiere : %s\nCombien d'evaluations pour cette matiere ? ", matiere.nom);
+        scanf("%d", &nombreEvals);
+        while (nombreEvals > N_MAX_EVALS)
+        {
+            printf("Matiere : %s\nCombien d'evaluations pour cette matiere ? (Saisie precedente trop grande) ", matiere.nom);
+            scanf("%d", &nombreEvals);
+        }
+        matiere.nombreEvaluations = nombreEvals;
     }
 }
 

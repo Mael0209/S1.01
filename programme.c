@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#define N_MAX 100
-#define N_MAX_MATIERES 15
+#define N_MAX_ETUD 100
+#define N_MAX_MATIERES 4
 #define N_MAX_EVALS 15
 
 // Structuration de la structure Etudiant :
@@ -9,14 +9,14 @@
 // tableau des matières
 // (lui-même contenant une structure Matiere contenant la liste des evaluations...)
 
-typedef enum nomMatieres
+typedef enum indexMatieres
 {
     maths,
     physique,
     SVT,
     Anglais
 } indexMatieres;
-indexMatieres indexMatiere = maths;
+indexMatieres indexMatiere;
 
 typedef struct Evaluation
 {
@@ -25,7 +25,7 @@ typedef struct Evaluation
 
 typedef struct Matiere
 {
-    char nom[50]; // nom de la amtière (Taille à revoir)
+    char nom[50]; // nom de la matière (Taille à revoir)
     int nombreEvaluations;
     float moyenne;                            // Moyenne de la matière (A voir comment la calculer)
     Evaluation listeEvaluations[N_MAX_EVALS]; // Liste des évaluations, utilise uen constante pour la taille
@@ -38,6 +38,16 @@ typedef struct Etudiant
     Matiere matieres[N_MAX_MATIERES];
 } Etudiant;
 
+void initMatieres(Etudiant etud)
+{
+    char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
+    printf("Pour chaque matiere, saisir le nombre d'evaluations : \n");
+    for (int i=0; i<N_MAX_MATIERES; i++){
+        char *nomMatiere = listeMatieres[i];
+        printf("%s\n", nomMatiere);
+    }
+}
+
 void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
 {
     int nombreSaisies;
@@ -46,11 +56,14 @@ void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
     for (int i = 0; i < nombreSaisies; i++)
     {
         char nom[30], prenom[30];
-        printf("Saisissez le nom et prenom de l'etudiant de la saisie %d : ", i+1);
+        Etudiant nouveauEtudiant = listeEtudiants[*nombreEtudiants]; // Insertion du nouveau etudiant dans la liste
+        nouveauEtudiant.nombreMatieres = 4;
+        printf("Saisissez le NOM et PRENOM de l'etudiant de la saisie %d : ", i + 1);
         scanf("%s%s", &nom, &prenom);
-        strcpy(listeEtudiants[*nombreEtudiants].nom, nom);
-        strcpy(listeEtudiants[*nombreEtudiants].prenom, prenom);
-        (*nombreEtudiants)++;
+        strcpy(nouveauEtudiant.nom, nom);
+        strcpy(nouveauEtudiant.prenom, prenom);
+        initMatieres(nouveauEtudiant);
+        (*nombreEtudiants)++; // nombreEtudiants permet à la fois de savoir le nbr d'étudiants et l'indice du prochain etudiant dans la liste
     }
 }
 
@@ -61,7 +74,7 @@ void afficherEtudiants()
 
 int main()
 {
-    Etudiant listeEtudiants[N_MAX];
+    Etudiant listeEtudiants[N_MAX_ETUD];
     int nombreEtudiants = 0;
     int reponse;
     do

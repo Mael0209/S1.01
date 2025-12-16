@@ -1,25 +1,20 @@
 #include <stdio.h>
 #include <string.h>
-#include <conio.h>
+
 #define N_MAX_ETUD 100
 #define N_MAX_MATIERES 5
 #define N_MAX_EVALS 30
 
-// Structuration de la structure Etudiant :
-// nom, prenom,
-// tableau des matières
-// (lui-même contenant une structure Matiere contenant la liste des evaluations...)
-
 typedef struct Evaluation
 {
-    float note, coeff; // Le coeff est facultatif
+    float note, coeff;
 } Evaluation;
 
 typedef struct Matiere
 {
-    char nom[50];                             // nom de la matière (Taille à revoir)
-    float moyenne;                            // Moyenne de la matière (A voir comment la calculer)
-    Evaluation listeEvaluations[N_MAX_EVALS]; // Liste des évaluations, utilise une constante pour la taille
+    char nom[50];
+    float moyenne;
+    Evaluation listeEvaluations[N_MAX_EVALS];
 } Matiere;
 
 typedef struct Etudiant
@@ -29,11 +24,18 @@ typedef struct Etudiant
     Matiere matieres[N_MAX_MATIERES];
 } Etudiant;
 
-void initMatieres(Etudiant etud) // Utilisée lors de la création d'un étudiant
+// CORRECTION : Passage par pointeur (*etud) et ajout de la liste globale pour copier les noms
+void initMatieres(Etudiant *etud, char listeMatieresGlobale[][15], int nbMatieresActuelles)
 {
+    etud->nombreMatieres = nbMatieresActuelles;
+    for (int i = 0; i < nbMatieresActuelles; i++)
+    {
+        strcpy(etud->matieres[i].nom, listeMatieresGlobale[i]);
+        etud->matieres[i].moyenne = 0;
+    }
 }
 
-void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
+void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants, char listeMatieresGlobale[][15], int nbMatieres)
 {
     int nombreSaisies;
     printf("Combien d'etudiants souhaitez-vous enregistrer ? ");
@@ -41,57 +43,90 @@ void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
     for (int i = 0; i < nombreSaisies; i++)
     {
         char nom[30], prenom[30];
-        Etudiant nouveauEtudiant = listeEtudiants[*nombreEtudiants]; // Insertion du nouveau etudiant dans la liste
-        nouveauEtudiant.nombreMatieres = 4;
+        Etudiant *nouveauEtudiant = &listeEtudiants[*nombreEtudiants];
+        
         printf("Saisissez le NOM et PRENOM de l'etudiant de la saisie %d : ", i + 1);
-        scanf("%s%s", &nom, &prenom);
-        strcpy(nouveauEtudiant.nom, nom);
-        strcpy(nouveauEtudiant.prenom, prenom);
-        initMatieres(nouveauEtudiant);
-        (*nombreEtudiants)++; // nombreEtudiants permet à la fois de savoir le nbr d'étudiants et l'indice du prochain etudiant dans la liste
+        scanf("%s%s", nom, prenom);
+        
+        strcpy(nouveauEtudiant->nom, nom);
+        strcpy(nouveauEtudiant->prenom, prenom);
+        
+        initMatieres(nouveauEtudiant, listeMatieresGlobale, nbMatieres);
+        
+        (*nombreEtudiants)++;
     }
 }
 
-void creerMatiere(char listeMatieres[N_MAX_MATIERES][15], int *nombreMatieres)
+void creerMatiere(char listeMatieres[N_MAX_MATIERES][15], int *nombreMatieres, int nombreEtudiants, Etudiant listeEtudiants[N_MAX_ETUD])
 {
     char nomNouvelleMatiere[15];
     printf("Matieres deja existantes : \n");
-    for (int i = 0; i < *nombreMatieres; i++)
+    if (*(nombreMatieres) == 0)
     {
-        printf("-  %s\n", listeMatieres[i]);
+        printf("Aucune matiere enregistree.\n");
+    }
+    else
+    {
+        for (int i = 0; i < *nombreMatieres; i++)
+        {
+            printf("-  %s\n", listeMatieres[i]);
+        }
     }
     printf("Entrez le nom de la nouvelle matiere :\n");
-    scanf("%s", &nomNouvelleMatiere);
+    scanf("%s", nomNouvelleMatiere);
+    
     strcpy(listeMatieres[*nombreMatieres], nomNouvelleMatiere);
+
+    if (nombreEtudiants > 0)
+    {
+        for (int i = 0; i < nombreEtudiants; i++)
+        {
+            Etudiant *pEtud = &listeEtudiants[i];
+            Matiere *pNouvelleMatiere = &pEtud->matieres[*(nombreMatieres)];
+            
+            strcpy(pNouvelleMatiere->nom, nomNouvelleMatiere);
+            pNouvelleMatiere->moyenne = 0;
+            
+            pEtud->nombreMatieres++; 
+            
+            printf("Ajoute pour %s %s : %s %f\n", pEtud->prenom, pEtud->nom, pNouvelleMatiere->nom, pNouvelleMatiere->moyenne);
+        }
+    }
+
     *(nombreMatieres) = *(nombreMatieres) + 1;
 }
 
-void afficherEtudiants() // A faire
+void afficherEtudiants()
 {
+    // A faire
 }
 
 int main()
 {
     Etudiant listeEtudiants[N_MAX_ETUD];
+    int nombreEtudiants = 0;
     char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
     int nombreMatieres = 4;
-    int nombreEtudiants = 0;
     int reponse;
     do
     {
         if (nombreMatieres == 0)
         {
-            printf("nombreMatieres = 0");
+            creerMatiere(listeMatieres, &nombreMatieres, nombreEtudiants, listeEtudiants);
         }
+        
         printf("Saisissez un chiffre correspondant a une option: \n1 - Creer une nouvelle matiere\n2 - Saisir un nouvel etudiant \n3 - Afficher tous les etudiants\n0 - Quitter le programme \n");
         scanf("%d", &reponse);
         switch (reponse)
         {
         case 1:
-            creerMatiere(listeMatieres, &nombreMatieres);
+            creerMatiere(listeMatieres, &nombreMatieres, nombreEtudiants, listeEtudiants);
             break;
         case 2:
-            saisieNouveauEtudiant(listeEtudiants, &nombreEtudiants);
+            saisieNouveauEtudiant(listeEtudiants, &nombreEtudiants, listeMatieres, nombreMatieres);
+            break;
+        case 3:
+            afficherEtudiants(); 
             break;
         case 0:
             break;

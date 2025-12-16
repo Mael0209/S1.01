@@ -1,22 +1,14 @@
 #include <stdio.h>
 #include <string.h>
+#include <conio.h>
 #define N_MAX_ETUD 100
-#define N_MAX_MATIERES 4
+#define N_MAX_MATIERES 5
 #define N_MAX_EVALS 30
 
 // Structuration de la structure Etudiant :
 // nom, prenom,
 // tableau des matières
 // (lui-même contenant une structure Matiere contenant la liste des evaluations...)
-
-typedef enum indexMatieres
-{
-    maths,
-    physique,
-    SVT,
-    Anglais
-} indexMatieres;
-indexMatieres indexMatiere;
 
 typedef struct Evaluation
 {
@@ -26,7 +18,6 @@ typedef struct Evaluation
 typedef struct Matiere
 {
     char nom[50];                             // nom de la matière (Taille à revoir)
-    int nombreEvaluations;                    // nombre d'évaluations, initialisé à 0 dans la fonction initMatiere
     float moyenne;                            // Moyenne de la matière (A voir comment la calculer)
     Evaluation listeEvaluations[N_MAX_EVALS]; // Liste des évaluations, utilise une constante pour la taille
 } Matiere;
@@ -40,25 +31,6 @@ typedef struct Etudiant
 
 void initMatieres(Etudiant etud) // Utilisée lors de la création d'un étudiant
 {
-    char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
-    printf("Pour chaque matiere, saisir le nombre d'evaluations : \n");
-    for (int i = 0; i < N_MAX_MATIERES; i++)
-    {
-        int nombreEvals;
-        char *nomMatiere = listeMatieres[i];
-        Matiere matiere = etud.matieres[i];
-        strcpy(matiere.nom, nomMatiere);
-        matiere.moyenne = 0;
-        matiere.nombreEvaluations = 0;
-        printf("Matiere : %s\nCombien d'evaluations pour cette matiere ? ", matiere.nom);
-        scanf("%d", &nombreEvals);
-        while (nombreEvals > N_MAX_EVALS)
-        {
-            printf("Matiere : %s\nCombien d'evaluations pour cette matiere ? (Saisie precedente trop grande) ", matiere.nom);
-            scanf("%d", &nombreEvals);
-        }
-        matiere.nombreEvaluations = nombreEvals;
-    }
 }
 
 void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
@@ -80,27 +52,46 @@ void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants)
     }
 }
 
-void afficherEtudiants()
+void creerMatiere(char listeMatieres[N_MAX_MATIERES][15], int *nombreMatieres)
 {
-    // A faire
+    char nomNouvelleMatiere[15];
+    printf("Matieres deja existantes : \n");
+    for (int i = 0; i < *nombreMatieres; i++)
+    {
+        printf("-  %s\n", listeMatieres[i]);
+    }
+    printf("Entrez le nom de la nouvelle matiere :\n");
+    scanf("%s", &nomNouvelleMatiere);
+    strcpy(listeMatieres[*nombreMatieres], nomNouvelleMatiere);
+    *(nombreMatieres) = *(nombreMatieres) + 1;
+}
+
+void afficherEtudiants() // A faire
+{
 }
 
 int main()
 {
     Etudiant listeEtudiants[N_MAX_ETUD];
+    char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
+    int nombreMatieres = 4;
     int nombreEtudiants = 0;
     int reponse;
     do
     {
-        printf("Saisissez un chiffre correspondant a une option: \n1 - Saisir un nouvel etudiant \n2 - Afficher tous les etudiants\n0 - Quitter le programme \n");
+        if (nombreMatieres == 0)
+        {
+            printf("nombreMatieres = 0");
+        }
+        printf("Saisissez un chiffre correspondant a une option: \n1 - Creer une nouvelle matiere\n2 - Saisir un nouvel etudiant \n3 - Afficher tous les etudiants\n0 - Quitter le programme \n");
         scanf("%d", &reponse);
         switch (reponse)
         {
         case 1:
-            saisieNouveauEtudiant(listeEtudiants, &nombreEtudiants);
+            creerMatiere(listeMatieres, &nombreMatieres);
             break;
         case 2:
-            afficherEtudiants();
+            saisieNouveauEtudiant(listeEtudiants, &nombreEtudiants);
             break;
         case 0:
             break;

@@ -1,139 +1,172 @@
 #include <stdio.h>
 #include <string.h>
 
-#define N_MAX_ETUD 100
-#define N_MAX_MATIERES 5
-#define N_MAX_EVALS 30
+#define MAX_ETUD 100
+#define MAX_MAT 10
+#define MAX_EVAL 20
 
-typedef struct Evaluation
-{
-    float note, coeff;
-} Evaluation;
-
-typedef struct Matiere
-{
-    char nom[50];
-    float moyenne;
-    Evaluation listeEvaluations[N_MAX_EVALS];
-} Matiere;
-
-typedef struct Etudiant
-{
-    char nom[30], prenom[30];
-    int nombreMatieres;
-    Matiere matieres[N_MAX_MATIERES];
-} Etudiant;
-
-// CORRECTION : Passage par pointeur (*etud) et ajout de la liste globale pour copier les noms
-void initMatieres(Etudiant *etud, char listeMatieresGlobale[][15], int nbMatieresActuelles)
-{
-    etud->nombreMatieres = nbMatieresActuelles;
-    for (int i = 0; i < nbMatieresActuelles; i++)
-    {
-        strcpy(etud->matieres[i].nom, listeMatieresGlobale[i]);
-        etud->matieres[i].moyenne = 0;
-    }
-}
-
-void saisieNouveauEtudiant(Etudiant listeEtudiants[], int *nombreEtudiants, char listeMatieresGlobale[][15], int nbMatieres)
+void saisirEtudiants(char nomsEtudiants[][50], int *nbEtudiants)
 {
     int nombreSaisies;
-    printf("Combien d'etudiants souhaitez-vous enregistrer ? ");
+    printf("Combien d'etudiants à ajouter ? ");
     scanf("%d", &nombreSaisies);
+    getchar();
+
     for (int i = 0; i < nombreSaisies; i++)
     {
-        char nom[30], prenom[30];
-        Etudiant *nouveauEtudiant = &listeEtudiants[*nombreEtudiants];
-        
-        printf("Saisissez le NOM et PRENOM de l'etudiant de la saisie %d : ", i + 1);
-        scanf("%s%s", nom, prenom);
-        
-        strcpy(nouveauEtudiant->nom, nom);
-        strcpy(nouveauEtudiant->prenom, prenom);
-        
-        initMatieres(nouveauEtudiant, listeMatieresGlobale, nbMatieres);
-        
-        (*nombreEtudiants)++;
+        if (*nbEtudiants >= MAX_ETUD)
+        {
+            printf("Tableau plein !\n");
+            break;
+        }
+        printf("Nom et Prenom de l'etudiant %d : ", *nbEtudiants + 1);
+        fgets(nomsEtudiants[*nbEtudiants], 50, stdin);
+
+        nomsEtudiants[*nbEtudiants][strcspn(nomsEtudiants[*nbEtudiants], "\n")] = 0;
+
+        (*nbEtudiants)++;
     }
 }
 
-void creerMatiere(char listeMatieres[N_MAX_MATIERES][15], int *nombreMatieres, int nombreEtudiants, Etudiant listeEtudiants[N_MAX_ETUD])
+void ajouterMatiere(char nomsMatieres[][20], int *nbMatieres)
 {
-    char nomNouvelleMatiere[15];
-    printf("Matieres deja existantes : \n");
-    if (*(nombreMatieres) == 0)
+    if (*nbMatieres >= MAX_MAT)
     {
-        printf("Aucune matiere enregistree.\n");
+        printf("Max matieres atteint.\n");
+        return;
+    }
+    printf("Nom de la nouvelle matiere : ");
+    scanf("%s", nomsMatieres[*nbMatieres]);
+    (*nbMatieres)++;
+}
+
+void saisirNotes(float notes[MAX_ETUD][MAX_MAT][MAX_EVAL], int nbNotes[MAX_ETUD][MAX_MAT], char nomsEtudiants[][50], char nomsMatieres[][20], int nbEtudiants, int nbMatieres)
+{
+
+    int choixEtud, choixMat;
+    float note;
+
+    if (nbEtudiants == 0 || nbMatieres == 0)
+    {
+        printf("\nIl faut au moins un etudiant et une matiere pour saisir des notes.\n");
+        return;
+    }
+
+    printf("\n--- Saisie de note ---\n");
+    for (int i = 0; i < nbEtudiants; i++)
+    {
+        printf("%d. %s\n", i + 1, nomsEtudiants[i]);
+    }
+    printf("Choisissez le numero de l'etudiant : ");
+    scanf("%d", &choixEtud);
+    int i = choixEtud - 1;
+
+    for (int j = 0; j < nbMatieres; j++)
+    {
+        printf("%d. %s\n", j + 1, nomsMatieres[j]);
+    }
+    printf("Choisissez le numero de la matiere : ");
+    scanf("%d", &choixMat);
+    int j = choixMat - 1;
+
+    int k = nbNotes[i][j];
+
+    if (k < MAX_EVAL)
+    {
+        printf("Entrez la note : ");
+        scanf("%f", &note);
+
+        notes[i][j][k] = note;
+
+        nbNotes[i][j]++;
+        printf("Note enregistree.\n");
     }
     else
     {
-        for (int i = 0; i < *nombreMatieres; i++)
-        {
-            printf("-  %s\n", listeMatieres[i]);
-        }
+        printf("Plus de place pour des notes dans cette matiere.\n");
     }
-    printf("Entrez le nom de la nouvelle matiere :\n");
-    scanf("%s", nomNouvelleMatiere);
-    
-    strcpy(listeMatieres[*nombreMatieres], nomNouvelleMatiere);
-
-    if (nombreEtudiants > 0)
-    {
-        for (int i = 0; i < nombreEtudiants; i++)
-        {
-            Etudiant *pEtud = &listeEtudiants[i];
-            Matiere *pNouvelleMatiere = &pEtud->matieres[*(nombreMatieres)];
-            
-            strcpy(pNouvelleMatiere->nom, nomNouvelleMatiere);
-            pNouvelleMatiere->moyenne = 0;
-            
-            pEtud->nombreMatieres++; 
-            
-            printf("Ajoute pour %s %s : %s %f\n", pEtud->prenom, pEtud->nom, pNouvelleMatiere->nom, pNouvelleMatiere->moyenne);
-        }
-    }
-
-    *(nombreMatieres) = *(nombreMatieres) + 1;
 }
 
-void afficherEtudiants()
+void afficherResultats(float notes[MAX_ETUD][MAX_MAT][MAX_EVAL], int nbNotes[MAX_ETUD][MAX_MAT], char nomsEtudiants[][50], char nomsMatieres[][20], int nbEtudiants, int nbMatieres)
 {
-    // A faire
+
+    printf("\n--- Bulletins ---\n");
+    for (int i = 0; i < nbEtudiants; i++)
+    {
+        printf("\nEtudiant : %s\n", nomsEtudiants[i]);
+        float sommeGenerale = 0;
+        int matieresComptees = 0;
+
+        for (int j = 0; j < nbMatieres; j++)
+        {
+            float sommeMat = 0;
+            int nb = nbNotes[i][j];
+
+            if (nb > 0)
+            {
+                for (int k = 0; k < nb; k++)
+                {
+                    sommeMat += notes[i][j][k];
+                }
+                float moyMat = sommeMat / nb;
+                printf("  - %s : %.2f (sur %d notes)\n", nomsMatieres[j], moyMat, nb);
+
+                sommeGenerale += moyMat;
+                matieresComptees++;
+            }
+            else
+            {
+                printf("  - %s : Pas de notes\n", nomsMatieres[j]);
+            }
+        }
+
+        if (matieresComptees > 0)
+            printf("  >> Moyenne Generale : %.2f\n", sommeGenerale / matieresComptees);
+        else
+            printf("  >> Pas de moyenne calculee.\n");
+    }
 }
 
 int main()
 {
-    Etudiant listeEtudiants[N_MAX_ETUD];
-    int nombreEtudiants = 0;
-    char listeMatieres[N_MAX_MATIERES][15] = {"maths", "physique", "SVT", "anglais"};
-    int nombreMatieres = 4;
-    int reponse;
+    char nomsEtudiants[MAX_ETUD][50];
+    char nomsMatieres[MAX_MAT][20];
+
+    float notes[MAX_ETUD][MAX_MAT][MAX_EVAL];
+
+    int nbNotes[MAX_ETUD][MAX_MAT] = {0};
+
+    int nbEtudiants = 0;
+    int nbMatieres = 0;
+    int choix;
+
     do
     {
-        if (nombreMatieres == 0)
-        {
-            creerMatiere(listeMatieres, &nombreMatieres, nombreEtudiants, listeEtudiants);
-        }
-        
-        printf("Saisissez un chiffre correspondant a une option: \n1 - Creer une nouvelle matiere\n2 - Saisir un nouvel etudiant \n3 - Afficher tous les etudiants\n0 - Quitter le programme \n");
-        scanf("%d", &reponse);
-        switch (reponse)
+        printf("\n--- MENU ---\n");
+        printf("1. Ajouter un etudiant\n");
+        printf("2. Creer une matiere\n");
+        printf("3. Saisir une note\n");
+        printf("4. Afficher les resultats\n");
+        printf("0. Quitter\n");
+        printf("Choix : ");
+        scanf("%d", &choix);
+
+        switch (choix)
         {
         case 1:
-            creerMatiere(listeMatieres, &nombreMatieres, nombreEtudiants, listeEtudiants);
+            saisirEtudiants(nomsEtudiants, &nbEtudiants);
             break;
         case 2:
-            saisieNouveauEtudiant(listeEtudiants, &nombreEtudiants, listeMatieres, nombreMatieres);
+            ajouterMatiere(nomsMatieres, &nbMatieres);
             break;
         case 3:
-            afficherEtudiants(); 
+            saisirNotes(notes, nbNotes, nomsEtudiants, nomsMatieres, nbEtudiants, nbMatieres);
             break;
-        case 0:
-            break;
-        default:
-            printf("Choix invalide. \n");
+        case 4:
+            afficherResultats(notes, nbNotes, nomsEtudiants, nomsMatieres, nbEtudiants, nbMatieres);
             break;
         }
-    } while (reponse != 0);
+    } while (choix != 0);
+
     return 0;
 }

@@ -127,6 +127,146 @@ void afficherResultats(float notes[MAX_ETUD][MAX_MAT][MAX_EVAL], int nbNotes[MAX
     }
 }
 
+void trierEtudiantsParMoyenne(float notes[MAX_ETUD][MAX_MAT][MAX_EVAL], int nbNotes[MAX_ETUD][MAX_MAT], char nomsEtudiants[][50], int nbEtudiants, int nbMatieres)
+{
+
+    // Tableau temporaire pour stocker les moyennes générales le temps du tri
+    float moyGen[MAX_ETUD];
+
+    // --- CALCUL PRÉALABLE DES MOYENNES ---
+    for (int i = 0; i < nbEtudiants; i++)
+    {
+        float sommeTotale = 0;
+        int matieresComptees = 0;
+
+        for (int m = 0; m < nbMatieres; m++)
+        {
+            if (nbNotes[i][m] > 0)
+            {
+                float sommeMat = 0;
+                for (int k = 0; k < nbNotes[i][m]; k++)
+                {
+                    sommeMat += notes[i][m][k];
+                }
+                sommeTotale += (sommeMat / nbNotes[i][m]);
+                matieresComptees++;
+            }
+        }
+        if (matieresComptees > 0)
+            moyGen[i] = sommeTotale / matieresComptees;
+        else
+            moyGen[i] = 0.0;
+    }
+
+    // tri à bulles des étudiants selon leurs moyennes générales
+    for (int i = 0; i < nbEtudiants - 1; i++)
+    {
+        for (int j = 0; j < nbEtudiants - i - 1; j++)
+        {
+            if (moyGen[j] < moyGen[j + 1])
+            {
+                float tempMoy = moyGen[j];
+                moyGen[j] = moyGen[j + 1];
+                moyGen[j + 1] = tempMoy;
+
+                char tempNom[50];
+                strcpy(tempNom, nomsEtudiants[j]);
+                strcpy(nomsEtudiants[j], nomsEtudiants[j + 1]);
+                strcpy(nomsEtudiants[j + 1], tempNom);
+
+                for (int m = 0; m < MAX_MAT; m++)
+                {
+                    int tempNb = nbNotes[j][m];
+                    nbNotes[j][m] = nbNotes[j + 1][m];
+                    nbNotes[j + 1][m] = tempNb;
+
+                    for (int k = 0; k < MAX_EVAL; k++)
+                    {
+                        float tempNote = notes[j][m][k];
+                        notes[j][m][k] = notes[j + 1][m][k];
+                        notes[j + 1][m][k] = tempNote;
+                    }
+                }
+            }
+        }
+    }
+    printf("\nTri effectue avec succes !\n");
+}
+
+void trierEtudiantsParMatiere(float notes[MAX_ETUD][MAX_MAT][MAX_EVAL], int nbNotes[MAX_ETUD][MAX_MAT], char nomsEtudiants[][50], char nomsMatieres[][20], int nbEtudiants, int nbMatieres)
+{
+    int choixMat;
+    printf("\n--- Tri par matiere ---\n");
+    for (int j = 0; j < nbMatieres; j++)
+    {
+        printf("%d. %s\n", j + 1, nomsMatieres[j]);
+    }
+    printf("Choisissez la matiere pour le tri : ");
+    scanf("%d", &choixMat);
+    int indexMat = choixMat - 1;
+
+    if (indexMat < 0 || indexMat >= nbMatieres)
+    {
+        printf("Matiere invalide.\n");
+        return;
+    }
+
+    float moyMatiere[MAX_ETUD];
+
+    for (int i = 0; i < nbEtudiants; i++)
+    {
+        int nb = nbNotes[i][indexMat];
+        if (nb > 0)
+        {
+            float somme = 0;
+            for (int k = 0; k < nb; k++)
+            {
+                somme += notes[i][indexMat][k];
+            }
+            moyMatiere[i] = somme / nb;
+        }
+        else
+        {
+            moyMatiere[i] = -1.0; // Indicateur d'absence de notes
+        }
+    }
+
+    // 3. TRI A BULLES (Décroissant)
+    for (int i = 0; i < nbEtudiants - 1; i++)
+    {
+        for (int j = 0; j < nbEtudiants - i - 1; j++)
+        {
+
+            if (moyMatiere[j] < moyMatiere[j + 1])
+            {
+                float tempMoy = moyMatiere[j];
+                moyMatiere[j] = moyMatiere[j + 1];
+                moyMatiere[j + 1] = tempMoy;
+
+                char tempNom[50];
+                strcpy(tempNom, nomsEtudiants[j]);
+                strcpy(nomsEtudiants[j], nomsEtudiants[j + 1]);
+                strcpy(nomsEtudiants[j + 1], tempNom);
+
+                for (int m = 0; m < MAX_MAT; m++)
+                {
+                    int tempNb = nbNotes[j][m];
+                    nbNotes[j][m] = nbNotes[j + 1][m];
+                    nbNotes[j + 1][m] = tempNb;
+
+                    for (int k = 0; k < MAX_EVAL; k++)
+                    {
+                        float tempNote = notes[j][m][k];
+                        notes[j][m][k] = notes[j + 1][m][k];
+                        notes[j + 1][m][k] = tempNote;
+                    }
+                }
+            }
+        }
+    }
+    printf("\nTri par %s effectue !\n", nomsMatieres[indexMat]);
+}
+
 int main()
 {
     char nomsEtudiants[MAX_ETUD][50];
@@ -147,6 +287,8 @@ int main()
         printf("2. Creer une matiere\n");
         printf("3. Saisir une note\n");
         printf("4. Afficher les resultats\n");
+        printf("5. Trier les etudiants par moyenne generale\n");
+        printf("6. Trier les etudiants par moyenne d'une matiere\n");
         printf("0. Quitter\n");
         printf("Choix : ");
         scanf("%d", &choix);
@@ -164,6 +306,12 @@ int main()
             break;
         case 4:
             afficherResultats(notes, nbNotes, nomsEtudiants, nomsMatieres, nbEtudiants, nbMatieres);
+            break;
+        case 5:
+            trierEtudiantsParMoyenne(notes, nbNotes, nomsEtudiants, nbEtudiants, nbMatieres);
+            break;
+        case 6:
+            trierEtudiantsParMatiere(notes, nbNotes, nomsEtudiants, nomsMatieres, nbEtudiants, nbMatieres);
             break;
         }
     } while (choix != 0);
